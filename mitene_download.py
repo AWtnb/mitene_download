@@ -9,6 +9,7 @@ import glob
 import json
 import mimetypes
 import os
+import pytz
 import pathlib
 import platform
 import sys
@@ -61,11 +62,28 @@ async def async_main() -> None:
   """,
     )
 
+    today_date = datetime.datetime.today().replace(
+        hour=12, minute=0, second=0, microsecond=0
+    )
+    one_week_ago = today_date - datetime.timedelta(days=7)
+
     parser.add_argument("--destination-directory", default="out")
     parser.add_argument("-p", "--password")
+    parser.add_argument("-sy", "--start-year", default=str(one_week_ago.year))
+    parser.add_argument("-sm", "--start-month", default=str(int(one_week_ago.month)))
+    parser.add_argument("-sd", "--start-day", default=str(int(one_week_ago.day)))
     parser.add_argument("-v", "--verbose", action="store_true")
 
     args = parser.parse_args()
+
+    tokyo = pytz.timezone("Asia/Tokyo")
+    start_period = tokyo.localize(
+        datetime.datetime(
+            int(args.start_year), int(args.start_month), int(args.start_day), 0, 0, 0
+        )
+    )
+
+    print("downloading media since", start_period.strftime("%Y-%m-%dT%H:%M:%S%z"))
 
     os.makedirs(args.destination_directory, exist_ok=True)
     # cleanup temp files from previous run, if interrupted
@@ -120,6 +138,12 @@ async def async_main() -> None:
                 filename = urllib.parse.urlparse(
                     media.get("expiringVideoUrl", media["expiringUrl"])
                 ).path.split("/")[-1]
+                media_took_at = media["tookAt"]
+                timestamp_obj = datetime.datetime.strptime(
+                    media_took_at, "%Y-%m-%dT%H:%M:%S%z"
+                )
+                if timestamp_obj < start_period:
+                    continue
                 filename = f'{media["tookAt"]}-{filename}'
                 if platform.system() == "Windows":
                     filename = filename.replace(":", "")
