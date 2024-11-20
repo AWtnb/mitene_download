@@ -9,7 +9,6 @@ import glob
 import json
 import mimetypes
 import os
-import pytz
 import pathlib
 import platform
 import sys
@@ -17,6 +16,7 @@ import urllib.parse
 from typing import Awaitable
 
 import aiohttp
+import pytz
 
 
 async def gather_with_concurrency(n: int, *tasks: Awaitable[None]) -> None:
