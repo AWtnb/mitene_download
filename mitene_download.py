@@ -62,28 +62,26 @@ async def async_main() -> None:
   """,
     )
 
-    today_date = datetime.datetime.today().replace(
-        hour=12, minute=0, second=0, microsecond=0
-    )
-    one_week_ago = today_date - datetime.timedelta(days=7)
-
     parser.add_argument("--destination-directory", default="out")
     parser.add_argument("-p", "--password")
-    parser.add_argument("-sy", "--start-year", default=str(one_week_ago.year))
-    parser.add_argument("-sm", "--start-month", default=str(int(one_week_ago.month)))
-    parser.add_argument("-sd", "--start-day", default=str(int(one_week_ago.day)))
+    parser.add_argument("-s", "--since", default="2024-11-07")
     parser.add_argument("-v", "--verbose", action="store_true")
 
     args = parser.parse_args()
 
-    tokyo = pytz.timezone("Asia/Tokyo")
-    start_period = tokyo.localize(
-        datetime.datetime(
-            int(args.start_year), int(args.start_month), int(args.start_day), 0, 0, 0
+    try:
+        since = args.since
+        since_obj = datetime.datetime(
+            int(since[0:4]), int(since[5:7]), int(since[8:10]), 0, 0, 0
         )
-    )
+    except:
+        print("Invalid date. Specify in %Y-%m-%d format.")
+        sys.exit(1)
 
-    print("downloading media since", start_period.strftime("%Y-%m-%dT%H:%M:%S%z"))
+    tokyo = pytz.timezone("Asia/Tokyo")
+    start_period = tokyo.localize(since_obj)
+
+    print("Downloading media since", start_period.strftime("%Y-%m-%dT%H:%M:%S%z"))
 
     os.makedirs(args.destination_directory, exist_ok=True)
     # cleanup temp files from previous run, if interrupted
