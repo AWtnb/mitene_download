@@ -65,6 +65,7 @@ async def async_main() -> None:
     parser.add_argument("--destination-directory", default="out")
     parser.add_argument("-p", "--password")
     parser.add_argument("-s", "--since", default="2024-11-07")
+    parser.add_argument("-c", "--concurrency", default="4")
     parser.add_argument("-v", "--verbose", action="store_true")
 
     args = parser.parse_args()
@@ -179,7 +180,7 @@ async def async_main() -> None:
                     ):
                         comment_file.write_text(comment_text, encoding="utf-8")
 
-        await gather_with_concurrency(4, *download_coroutines)
+        await gather_with_concurrency(int(args.concurrency), *download_coroutines)
     await session.close()
 
 
