@@ -147,9 +147,8 @@ async def async_main() -> None:
                 if platform.system() == "Windows":
                     filename = filename.replace(":", "")
                 if not os.path.splitext(filename)[1]:
-                    filename = filename + mimetypes.guess_extension(
-                        media["contentType"]
-                    )
+                    if ext := mimetypes.guess_extension(media["contentType"]):
+                        filename = filename + ext
                 destination_filename = os.path.join(
                     args.destination_directory,
                     filename,
